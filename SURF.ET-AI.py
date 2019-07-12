@@ -5,7 +5,7 @@
 |                                                       |
 | Author: Charles Wang,  UC Berkeley, c_w@berkeley.edu  |
 |                                                       |
-| Date:    04/07/2019                                   |
+| Date:    07/11/2019                                   |
 *------------------------------------------------------*/
 """
 
@@ -16,6 +16,7 @@ import json
 #import geojsonio
 import numpy as np
 import geopandas as gpd
+from scipy import spatial
 from shapely.geometry import Point, Polygon
 
 from surf.rf import SK
@@ -26,8 +27,14 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
+#---------------------------------------------------------------------------------------
+# 1. Prepare data
+#---------------------------------------------------------------------------------------
 
 inputPars, outputPars = readInput("cetus.json")
+
+# mesh 
+mesh(inputPars["boundaryFile"], inputPars["workDir"]+'/Mesh.geojson', density = inputPars["meshDensity"])
 
 Vs30File = gpd.read_file(inputPars["dataFile"])
 Vs30j = json.loads(Vs30File.to_json())
@@ -41,11 +48,18 @@ for vspt in vspts:
     data.append([*lonlat,vs30])
 data = np.array(data)
 
-mesh(inputPars["boundaryFile"], inputPars["workDir"]+'/Mesh.geojson', density = inputPars["meshDensity"])
 
-colLength = 0.1
-sill = np.var( data[:,2] )
-cov = m.cov( m.exponential, ( colLength, sill ) )
+#---------------------------------------------------------------------------------------
+# 2. Train the NN
+#---------------------------------------------------------------------------------------
+from surf.NN import SpatialNeuroNet
+
+nn = SpatialNeuroNet(rawData = data, numNei = 20)
+
+
+#---------------------------------------------------------------------------------------
+# 3. Use NN to predict
+#---------------------------------------------------------------------------------------
 
 meshFile = gpd.read_file(inputPars["workDir"]+'/Mesh.geojson')
 meshjson = json.loads(meshFile.to_json())
@@ -56,16 +70,22 @@ cmap = cm.get_cmap('Spectral')
 for mf in meshfeatures:
     lonlat = mf['geometry']['coordinates'][0][0]
     pt = lonlat[:2]
-    mu, std = SK( data, cov, pt, N=100 )
-    rgba = cmap(mu/700)
+    #mu, std = SK( data, cov, pt, N=100 )
+    mu = nn.predict(pt)
+    #std = 0.0
+    rgba = cmap(1-mu/700)
     mf['properties']['mu_Vs30'] = mu
-    mf['properties']['std_Vs30'] = std
+    #mf['properties']['std_Vs30'] = std
     mf['properties']['fill'] = colors.rgb2hex(rgba)
     newfeatures.append(mf)
 
 meshjson["features"] = newfeatures
 with open(outputPars["resultFile"],'w') as out:
         json.dump(meshjson, out)
+
+#---------------------------------------------------------------------------------------
+# 4. Visulize result
+#---------------------------------------------------------------------------------------
 
 #geojsonio.display(json.dumps(meshjson))
 os.chdir("web")

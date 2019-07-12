@@ -16,7 +16,7 @@ from shapely.geometry import Point, Polygon
 
 #def splitPolygon(o):
 
-def mesh(oldFile, newFile, esize=0):
+def mesh(oldFile, newFile, esize=0, density=100.):
     f = gpd.read_file(oldFile)
     jsn = json.loads(f.to_json())
     pts = jsn["features"][0]['geometry']['coordinates'][0]
@@ -34,7 +34,7 @@ def mesh(oldFile, newFile, esize=0):
     yv = newnodes[:,1].T
 
     if esize < 1e-10:
-        esize = -(ymin-ymax)/100
+        esize = -(ymin-ymax)/density
     m = round(-(ymin-ymax)/esize)
     n = round(-(xmin-xmax)/esize)
 
@@ -61,10 +61,37 @@ def mesh(oldFile, newFile, esize=0):
     with open(newFile,'w') as out:
         json.dump(jsn, out)
 
-def readInput(file):
+def readInput(inputJsonFileName):
+    inj = json.load(open(inputJsonFileName,'r'))
+
+    inputNames = ["workDir", "boundaryFile", "dataFile", "meshDensity"]
+    outputNames = ["resultFile"]
+
+    data = []
+    ET = inj["ET"]
+    weakAPI = ET["APIs"]["weakCouplings"]
+
+    inputPars = {}
+    inputs = weakAPI["inputs"]
+    for input in inputs:
+        name = input["name"]
+        value = input["value"]
+        inputPars[name] = value
+    
+    outputPars = {}
+    outputs = weakAPI["outputs"]
+    for output in outputs:
+        name = output["name"]
+        value = output["value"]
+        outputPars[name] = value
+    
+    return inputPars, outputPars
+
+    '''
     workDir = '/Users/simcenter/Codes/SimCenter/SURF/data'
     boundaryFile = '/Users/simcenter/Codes/SimCenter/SURF/data/EastBayBoundary.geojson'
     dataFile = '/Users/simcenter/Codes/SimCenter/SURF/data/EastBayVs30Data.geojson'
-    resultFile = '/Users/simcenter/Codes/SimCenter/SURF/web/static/data.geojson'
+    resultFile = '/Users/simcenter/Codes/SimCenter/SURF/data/data.geojson'
     meshDensity = 10
     return workDir, boundaryFile, dataFile, resultFile, meshDensity
+    '''
