@@ -81,10 +81,10 @@ class SpatialNeuroNet:
         self.normed_test_data = self.norm(self.test_dataset)
 
         # build model
-        self.model = self.build_model()
+        #self.model = self.build_model()
 
         # train model
-        self.train()
+        #self.train()
 
         # test model
         #self.test()
@@ -118,9 +118,6 @@ class SpatialNeuroNet:
         data = np.array(data)
         self.X = data
         self.Y = rawTarget
-        
-
-        
 
 
     def norm(self, v):
@@ -139,26 +136,39 @@ class SpatialNeuroNet:
         #optimizer = tf.train.RMSPropOptimizer(0.001)
         optimizer = tf.train.AdamOptimizer(1e-4)
         model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
+        self.model = model
+        return model
+
+    # Build the classification model
+    def build_classification_model(self, numTypes):
+        model = keras.Sequential([
+          layers.Dense(len(self.train_dataset.T), activation=tf.nn.relu, input_shape=[len(self.train_dataset.T)]),
+          layers.Dense(len(self.train_dataset.T), activation=tf.nn.relu),
+          layers.Dense(len(self.train_dataset.T)/2, activation=tf.nn.relu),
+          layers.Dense(numTypes, activation=tf.nn.softmax)
+        ])
+        model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+        self.model = model
         return model
 
 
-
-
-    def train(self):
+    def train_classification_model(self):
         self.model.summary()
         # The patience parameter is the amount of epochs to check for improvement
         early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-        history = self.model.fit(self.normed_train_data, self.train_labels, epochs=self.EPOCHS,
+        history = self.model.fit(self.normed_train_data, self.train_labels.astype(int).flatten(), epochs=self.EPOCHS,
                             validation_split = 0.2, verbose=0, callbacks=[early_stop, PrintDot()])
         hist = pd.DataFrame(history.history)
         hist['epoch'] = history.epoch
         print('\n')
         print(hist.tail())
-        self.plot_history(history)
+        #self.plot_history(history)
         #plt.savefig('data/NN_ContinuumWall_TrainingLoss_V1.png')
 
-        loss, mae, mse = self.model.evaluate(self.normed_test_data, self.test_labels, verbose=0)
-        print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
+        #loss, mae, mse = self.model.evaluate(self.normed_test_data, self.test_labels, verbose=0)
+        #print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
 
 
         '''
@@ -173,6 +183,24 @@ class SpatialNeuroNet:
         print("Saved model to disk")
         '''
 
+    def train(self):
+        self.model.summary()
+        # The patience parameter is the amount of epochs to check for improvement
+        early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+        print(self.train_labels)
+        history = self.model.fit(self.normed_train_data, self.train_labels, epochs=self.EPOCHS,
+                            validation_split = 0.2, verbose=0, callbacks=[early_stop, PrintDot()])
+        hist = pd.DataFrame(history.history)
+        hist['epoch'] = history.epoch
+        print('\n')
+        print(hist.tail())
+        self.plot_history(history)
+        #plt.savefig('data/NN_ContinuumWall_TrainingLoss_V1.png')
+
+        loss, mae, mse = self.model.evaluate(self.normed_test_data, self.test_labels, verbose=0)
+        print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
+
+
 
 
     def test(self):
@@ -184,6 +212,46 @@ class SpatialNeuroNet:
         trueValues = self.test_labels
         #predictValues = test_predictions[0::5]
         predictValues = test_predictions
+        print(trueValues.flatten())
+        print(predictValues)
+
+        plt.scatter(trueValues.flatten(), predictValues)
+        plt.xlabel('True Values [label]')
+        plt.ylabel('Predictions [label]')
+        plt.axis('equal')
+        plt.axis('square')
+        
+        plt.xlim([0,plt.xlim()[1]])
+        plt.ylim([0,plt.ylim()[1]])
+        _ = plt.plot([-100, 100], [-100, 100])
+
+        
+
+        plt.subplot(1,2,2)
+        error = predictValues - trueValues.flatten()
+        print('errors:  ')
+        print(error)
+        plt.hist(error, bins=25)
+
+        plt.xlabel("Prediction Error [label]")
+        _ = plt.ylabel("Count")
+
+        plt.savefig('data/Predictions_error.png')
+        plt.show()
+
+    def test_classification_model(self):
+        # test
+        test_predictions = self.model.predict(self.normed_test_data)
+
+
+        plt.figure(figsize=(20,10))
+        plt.subplot(1,2,1)
+        trueValues = self.test_labels.flatten()
+        #predictValues = test_predictions[0::5]
+        predictValues = np.argmax(test_predictions,axis=1)
+        print(trueValues)
+        print(predictValues)
+        print(len(predictValues))
         plt.scatter(trueValues, predictValues)
         plt.xlabel('True Values [label]')
         plt.ylabel('Predictions [label]')
@@ -195,16 +263,14 @@ class SpatialNeuroNet:
 
         plt.subplot(1,2,2)
         error = predictValues - trueValues
-        print('errors:  ')
         print(self.train_dataset)
+        print('errors:  ')
         plt.hist(error, bins = 25)
         plt.xlabel("Prediction Error [label]")
         _ = plt.ylabel("Count")
 
-
-        plt.savefig('data/NN_ContinuumWall_Predictions_V1.png')
+        plt.savefig('data/Predictions_classification_error.png')
         plt.show()
-
 
     def predict(self, pt):
         X = self.getX(pt, N=self.numNei)
@@ -212,6 +278,11 @@ class SpatialNeuroNet:
         Y = self.model.predict([X]).flatten().item()
         return Y
 
+    def predict_classification_model(self, pt):
+        X = self.getX(pt, N=self.numNei)
+        X = self.norm(X)
+        Y = np.argmax(self.model.predict([X]))
+        return Y
 
 
     def plot_history(self, history):

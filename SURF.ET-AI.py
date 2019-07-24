@@ -55,7 +55,8 @@ data = np.array(data)
 from surf.NN import SpatialNeuroNet
 
 nn = SpatialNeuroNet(rawData = data, numNei = 20)
-
+nn.build_model()
+nn.train()
 
 #---------------------------------------------------------------------------------------
 # 3. Use NN to predict
