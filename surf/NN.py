@@ -236,7 +236,7 @@ class SpatialNeuroNet:
         plt.xlabel("Prediction Error [label]")
         _ = plt.ylabel("Count")
 
-        plt.savefig('data/Predictions_error.png')
+        #plt.savefig('data/Predictions_error.png')
         plt.show()
 
     def test_classification_model(self):
@@ -269,7 +269,7 @@ class SpatialNeuroNet:
         plt.xlabel("Prediction Error [label]")
         _ = plt.ylabel("Count")
 
-        plt.savefig('data/Predictions_classification_error.png')
+        #plt.savefig('data/Predictions_classification_error.png')
         plt.show()
 
     def predict(self, pt):
