@@ -67,10 +67,20 @@ meshjson["features"] = newfeatures
 with open(outputPars["resultFile"],'w') as out:
         json.dump(meshjson, out)
 
+print("Results written "+outputPars["resultFile"])
+
+'''
+#---------------------------------------------------------------------------------------
+# Visulize result
+#---------------------------------------------------------------------------------------
+
 #geojsonio.display(json.dumps(meshjson))
 os.chdir("web")
 copyfile(outputPars["resultFile"], 'static/Result.geojson')
 os.system('sh start.sh')
+'''
+
+
 
 
 
