@@ -47,6 +47,7 @@ for vspt in vspts:
     vs30 = vspt['properties']['Vs30']
     data.append([*lonlat,vs30])
 data = np.array(data)
+maxValue = max(data[:,2])
 
 
 #---------------------------------------------------------------------------------------
@@ -74,7 +75,7 @@ for mf in meshfeatures:
     #mu, std = SK( data, cov, pt, N=100 )
     mu = nn.predict(pt)
     #std = 0.0
-    rgba = cmap(1-mu/700)
+    rgba = cmap(1-mu/maxValue)
     mf['properties']['mu_Vs30'] = mu
     #mf['properties']['std_Vs30'] = std
     mf['properties']['fill'] = colors.rgb2hex(rgba)
@@ -83,7 +84,9 @@ for mf in meshfeatures:
 meshjson["features"] = newfeatures
 with open(outputPars["resultFile"],'w') as out:
         json.dump(meshjson, out)
+print("Results written "+outputPars["resultFile"])
 
+'''
 #---------------------------------------------------------------------------------------
 # 4. Visulize result
 #---------------------------------------------------------------------------------------
@@ -92,7 +95,7 @@ with open(outputPars["resultFile"],'w') as out:
 os.chdir("web")
 copyfile(outputPars["resultFile"], 'static/Result.geojson')
 os.system('sh start.sh')
-
+'''
 
 
 
