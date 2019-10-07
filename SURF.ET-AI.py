@@ -53,9 +53,9 @@ maxValue = max(data[:,2])
 #---------------------------------------------------------------------------------------
 # 2. Train the NN
 #---------------------------------------------------------------------------------------
-from surf.NN import SpatialNeuroNet
+from surf.NN import SpatialNeuralNet
 
-nn = SpatialNeuroNet(rawData = data, numNei = 20)
+nn = SpatialNeuralNet(rawData = data, numNei = 20)
 nn.build_model()
 nn.train()
 

@@ -17,7 +17,7 @@ pip install pySURF
 The example below shows how to train a neural network on a data set, and use it to predict.
 
 ```python
-    from surf.NN import SpatialNeuroNet
+    from surf.NN import SpatialNeuralNet
 
     #---------------------------------------
     # 1. Prepare your data
@@ -29,7 +29,7 @@ The example below shows how to train a neural network on a data set, and use it 
     # 2. Train the neural network
     #---------------------------------------
     
-    nn = SpatialNeuroNet(rawData = data, numNei = 20)
+    nn = SpatialNeuralNet(rawData = data, numNei = 20)
     nn.build_model()
     nn.train()
 

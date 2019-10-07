@@ -33,7 +33,7 @@ class PrintDot(keras.callbacks.Callback):
     print('.', end='')
 
 
-class SpatialNeuroNet:
+class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
