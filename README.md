@@ -4,7 +4,7 @@
 
 ## What is <i>SURF</i>?
 
-'<i>SURF</i>' is a Python package for performing spatial uncertainty analysis uisng random fields and machine leaning.
+<i>SURF</i> is a Python package for performing spatial uncertainty analysis uisng random fields and machine leaning.
 
 ## Install
 
@@ -78,7 +78,7 @@ The example below shows how to define a spatial model for a data set, and insert
 
 ## License
 
-'<i>SURF</i>' is distributed under the BSD 3-Clause license.
+<i>SURF</i> is distributed under the BSD 3-Clause license.
 
 ## Acknowledgement
 
