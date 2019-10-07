@@ -1,10 +1,16 @@
 # <i>Spatial Uncertainty Research Framework</i>
 
-![image](doc/surf.png)
+<img src="https://raw.githubusercontent.com/NHERI-SimCenter/SURF/master/doc/surf.png" alt="pelicun" height="250"/>
 
 ## What is <i>SURF</i>?
 
 '<i>SURF</i>' is a Python package for performing spatial uncertainty analysis uisng random fields and machine leaning.
+
+## Install
+
+```sh
+pip install pySURF
+```
 
 ## Examples
 
