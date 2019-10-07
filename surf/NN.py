@@ -24,7 +24,7 @@ from tensorflow.keras import layers
 from scipy.spatial.distance import squareform, cdist, pdist
 
 # fix random seed for reproducibility
-tf.set_random_seed(1234)
+#tf.set_random_seed(1234)
 
 class PrintDot(keras.callbacks.Callback):
   def on_epoch_end(self, epoch, logs):
@@ -33,7 +33,7 @@ class PrintDot(keras.callbacks.Callback):
     print('.', end='')
 
 
-class SpatialNeuroNet:
+class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
@@ -131,7 +131,7 @@ class SpatialNeuroNet:
           layers.Dense(64, activation=tf.nn.relu),
           layers.Dense(64, activation=tf.nn.relu),
           layers.Dense(64, activation=tf.nn.relu),
-          layers.Dense(1)
+          layers.Dense(1, activation=tf.nn.sigmoid)#layers.Dense(1)
         ])
         #optimizer = tf.train.RMSPropOptimizer(0.001)
         optimizer = tf.train.AdamOptimizer(1e-4)

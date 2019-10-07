@@ -1,0 +1,20 @@
+include README.md
+include LICENSE
+include *.md
+include requirements.txt
+include doc/surf.png
+exclude test
+exclude web
+exclude doc
+exclude activatePython
+exclude SURF.ET*.py
+exclude cetus*.json
+exclude csv2geojson.py
+exclude surf/tensorflowNNSpatial.py
+exclude surf/data
+exclude surf/run
+
+
+global-exclude __pycache__ *.py[cod]
+global-exclude *.so *.dylib
+
