@@ -19,8 +19,15 @@ from shapely.geometry import Point, Polygon
 def mesh(oldFile, newFile, esize=0, density=100.):
     f = gpd.read_file(oldFile)
     jsn = json.loads(f.to_json())
-    pts = jsn["features"][0]['geometry']['coordinates'][0]
+    geometryType = jsn["features"][0]['geometry']["type"]
+    if geometryType == "Polygon":
+        pts = jsn["features"][0]['geometry']['coordinates'][0]
+    else:#MultiPolygon
+        pts = jsn["features"][0]['geometry']['coordinates'][0][0]
+    #print(oldFile)
+    #pts = pts[0]
     poly = Polygon(pts)
+
 
     
     newnodes = np.array(pts)
