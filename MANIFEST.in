@@ -2,6 +2,7 @@ include README.md
 include LICENSE
 include *.md
 include requirements.txt
+include doc/surf.png
 exclude test
 exclude web
 exclude doc

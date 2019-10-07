@@ -18,7 +18,7 @@ def read_requirements(filename):
 
 
 setup(
-    name='SURF',
+    name='pySURF',
     python_requires='>=3.0',
     version=surf.__version__,
     description="Spatial Uncertainty Research Framework",
