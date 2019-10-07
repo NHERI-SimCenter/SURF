@@ -2,9 +2,6 @@ include README.md
 include LICENSE
 include *.md
 include requirements.txt
-include examples/SimCenter/DL_calculation.py
-recursive-include resources *.json *.xlsx
-recursive-include pelicun/tests/resources *.*
 exclude test
 exclude web
 exclude doc
@@ -12,9 +9,10 @@ exclude activatePython
 exclude SURF.ET*.py
 exclude cetus*.json
 exclude csv2geojson.py
+exclude surf/tensorflowNNSpatial.py
 exclude surf/data
 exclude surf/run
-exclude surf/tensorflowNNSpatial.py
+
 
 global-exclude __pycache__ *.py[cod]
 global-exclude *.so *.dylib

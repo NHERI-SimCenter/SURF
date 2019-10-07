@@ -27,7 +27,7 @@ setup(
     author="Charles Wang",
     author_email='c_w@berkeley.edu',
     url='https://github.com/NHERI-SimCenter/SURF',
-    packages=['Surf'],
+    packages=['surf'],
     zip_safe=False,
     install_requires=read_requirements('requirements.txt'),
     include_package_data=True,
@@ -35,7 +35,7 @@ setup(
     keywords=['random field', 'spatial uncertainty', 'surf', 'surf library', 'surf framework'],
     classifiers=[
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD 3-Clause',
+        'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
