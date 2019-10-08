@@ -1,6 +1,6 @@
 # <i>Spatial Uncertainty Research Framework</i>
 
-<img src="https://raw.githubusercontent.com/NHERI-SimCenter/SURF/master/docs/images/surf.png" alt="SURF" height="250"/>
+
 
 ## What is <i>SURF</i>?
 
