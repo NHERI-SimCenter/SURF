@@ -4,6 +4,7 @@ include *.md
 include requirements.txt
 include doc/surf.png
 exclude test
+exclude deploy
 exclude web
 exclude doc
 exclude activatePython
