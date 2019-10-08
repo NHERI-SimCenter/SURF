@@ -1,6 +1,6 @@
 # <i>Spatial Uncertainty Research Framework</i>
 
-<img src="https://raw.githubusercontent.com/NHERI-SimCenter/SURF/master/docs/surf.png" alt="SURF" height="250"/>
+<img src="https://raw.githubusercontent.com/NHERI-SimCenter/SURF/master/docs/images/surf.png" alt="SURF" height="250"/>
 
 ## What is <i>SURF</i>?
 
@@ -69,6 +69,9 @@ The example below shows how to define a spatial model for a data set, and insert
     unkown_point = [x, y] # define a point  
     predicted_mu, predicted_std = SK( data, cov, unkown_point, N=100 )
 ```
+## Documentation
+
+[Online documentation](https://nheri-simcenter.github.io/SURF)
 
 ## Application examples
 
