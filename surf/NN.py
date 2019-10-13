@@ -37,7 +37,7 @@ class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
-    def __init__(self, X=None, Y=None, rawData=None, numNei=10, trainFrac=0.8):
+    def __init__(self, X=None, Y=None, rawData=None, distScaler = 100000., numNei=10, trainFrac=0.8):
         '''
         X: input
         Y: output
@@ -46,6 +46,7 @@ class SpatialNeuralNet:
         trainFrac: fraction of data used for training
         '''
         self.numNei = numNei
+        self.distScaler = distScaler
 
         if rawData is not None:
             self.rawData = rawData
@@ -97,23 +98,23 @@ class SpatialNeuralNet:
         numPre = 2
 
         # Defining input size, hidden layer size, output size and batch size respectively
-        n_in, n_h, n_out, batch_size = numNei*perNei+numPre, 10, 1, 1000
+        n_in, n_h, n_out, batch_size = numNei * perNei + numPre, 10, 1, 1000
 
-        rawData = self.rawData[:,0:2]
-        rawTarget = self.rawData[:,2:]
+        rawData = self.rawData[:,:-1]
+        rawTarget = self.rawData[:,-1]
 
         # Create data
         coordsAll = np.array(rawData, dtype=np.float32)
         kdTree = spatial.KDTree(coordsAll)
         data = []
         for i in range(len(rawTarget)):
-            distance,index = kdTree.query(rawData[i,0:2],numNei+1) # nearest 10 points
+            distance,index = kdTree.query(rawData[i,:],numNei+1) # nearest 10 points
             distance = distance[1:]
             index = index[1:]
             datatmp = rawData[i,:]
 
             for j in range(numNei):
-                datatmp = np.append(np.append(datatmp, distance[j]*100000), rawTarget[index[j]])
+                datatmp = np.append(np.append(datatmp, distance[j]*self.distScaler), rawTarget[index[j]])
             data.append(datatmp.tolist())
         data = np.array(data)
         self.X = data
@@ -121,7 +122,6 @@ class SpatialNeuralNet:
 
 
     def norm(self, v):
-
         return (v - self.mean_train_dataset) / self.std_train_dataset
 
     # Build the model
@@ -131,7 +131,8 @@ class SpatialNeuralNet:
           layers.Dense(64, activation=tf.nn.relu),
           layers.Dense(64, activation=tf.nn.relu),
           layers.Dense(64, activation=tf.nn.relu),
-          layers.Dense(1, activation=tf.nn.sigmoid)#layers.Dense(1)
+          layers.Dense(1)
+          #layers.Dense(1, activation=tf.nn.sigmoid) # for 0~1
         ])
         #optimizer = tf.train.RMSPropOptimizer(0.001)
         optimizer = tf.train.AdamOptimizer(1e-4)
@@ -277,6 +278,11 @@ class SpatialNeuralNet:
         X = self.norm(X)
         Y = self.model.predict([X]).flatten().item()
         return Y
+    
+    def predict_simple(self, pt):
+        X = [self.norm(pt)]
+        Y = self.model.predict([X]).flatten().item()
+        return Y
 
     def predict_classification_model(self, pt):
         X = self.getX(pt, N=self.numNei)
@@ -319,7 +325,7 @@ class SpatialNeuralNet:
             n = [n]
 
         # get dnp
-        d = cdist( self.rawData[:,:2], n )
+        d = cdist( self.rawData[:,:-1], n )
         P = np.hstack(( self.rawData, d ))
 
         if N > 0: # use N nearest neighbor
@@ -328,7 +334,7 @@ class SpatialNeuralNet:
             N = len(P)
 
         rawData = self.rawData
-        coordsAll = np.array(rawData[:,0:2], dtype=np.float32)
+        coordsAll = np.array(rawData[:,:-1], dtype=np.float32)
         kdTree = spatial.KDTree(coordsAll)
         X = []
         distance,index = kdTree.query(n,N) # nearest N+1 points
@@ -336,7 +342,7 @@ class SpatialNeuralNet:
         index = index[0][0:]
         xtmp = n
         for j in range(N):
-            xtmp = np.append(np.append(xtmp, distance[j]*100000), rawData[index[j],2])
+            xtmp = np.append(np.append(xtmp, distance[j]*self.distScaler), rawData[index[j],2])
         X = np.array([xtmp.tolist()])
         return X
 
