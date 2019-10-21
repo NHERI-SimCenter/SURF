@@ -9,12 +9,12 @@
 ## Install
 
 ```sh
-pip install pySURF
+pip3 install pySURF
 ```
 
-## Examples
+## How to use
 
-The example below shows how to train a neural network on a data set, and use it to predict.
+The example below shows how to train a `neural network` on a data set, and use it to predict.
 
 ```python
     from surf.NN import SpatialNeuralNet
@@ -42,7 +42,7 @@ The example below shows how to train a neural network on a data set, and use it 
 
 ```
 
-The example below shows how to define a spatial model for a data set, and insert it into random field to predict.
+The example below shows how to define a `spatial model` for a data set, and insert it into `random field` to predict.
 
 ```python
     from surf.rf import SK
@@ -69,9 +69,7 @@ The example below shows how to define a spatial model for a data set, and insert
     unkown_point = [x, y] # define a point  
     predicted_mu, predicted_std = SK( data, cov, unkown_point, N=100 )
 ```
-## Documentation
 
-[Online documentation](https://nheri-simcenter.github.io/SURF)
 
 ## Application examples
 
