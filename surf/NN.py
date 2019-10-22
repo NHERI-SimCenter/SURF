@@ -37,7 +37,7 @@ class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
-    def __init__(self, X=None, Y=None, rawData=None, distScaler = 100000., numNei=10, trainFrac=0.8):
+    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None, distScaler = 100000., numNei=10, trainFrac=0.8):
         '''
         X: input
         Y: output
@@ -45,6 +45,18 @@ class SpatialNeuralNet:
         numNei: number of neighbor to be considered
         trainFrac: fraction of data used for training
         '''
+
+        if architecture is None:
+            # default architecture
+            self.architecture = [256, 64, 64, 64, 1]
+        else:
+            if len(architecture)<2:
+                print("Length of NN architecture must be greater than 1")
+                exit()
+            self.architecture = architecture
+        
+        self.activation = activation
+
         self.numNei = numNei
         self.distScaler = distScaler
 
@@ -126,14 +138,19 @@ class SpatialNeuralNet:
 
     # Build the model
     def build_model(self):
-        model = keras.Sequential([
-          layers.Dense(256, activation=tf.nn.relu, input_shape=[len(self.train_dataset.T)]),
-          layers.Dense(64, activation=tf.nn.relu),
-          layers.Dense(64, activation=tf.nn.relu),
-          layers.Dense(64, activation=tf.nn.relu),
-          layers.Dense(1)
-          #layers.Dense(1, activation=tf.nn.sigmoid) # for 0~1
-        ])
+        archi = []
+        archi.append(layers.Dense(self.architecture[0], activation=tf.nn.relu, input_shape=[len(self.train_dataset.T)]))
+        for i in self.architecture[1:-1]:
+            archi.append(layers.Dense(i, activation=tf.nn.relu))
+        if self.activation is None:
+            archi.append(layers.Dense(self.architecture[-1]))
+        elif self.activation == "sigmoid":
+            archi.append(layers.Dense(self.architecture[-1], activation=tf.nn.sigmoid)) # for 0~1
+        else:#
+            #TODO: add more activation fuctions
+            archi.append(layers.Dense(self.architecture[-1]))
+
+        model = keras.Sequential(archi)
         #optimizer = tf.train.RMSPropOptimizer(0.001)
         optimizer = tf.train.AdamOptimizer(1e-4)
         model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
