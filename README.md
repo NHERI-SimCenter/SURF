@@ -11,6 +11,9 @@
 
 [Online documentation](https://nheri-simcenter.github.io/SURF)
 
+## How to cite
+
+Charles Wang. (2019, September 28). NHERI-SimCenter/SURF: v0.2.0 (Version v0.2.0). Zenodo. http://doi.org/10.5281/zenodo.3463676
 
 ## License
 

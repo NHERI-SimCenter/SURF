@@ -77,6 +77,10 @@ The example below shows how to define a `spatial model` for a data set, and inse
 
 [Soft-Story Detection](https://github.com/charlesxwang/Soft-Story-Detection)
 
+## How to cite
+
+Charles Wang. (2019, September 28). NHERI-SimCenter/SURF: v0.2.0 (Version v0.2.0). Zenodo. http://doi.org/10.5281/zenodo.3463676
+
 ## License
 
 <i>SURF</i> is distributed under the BSD 3-Clause license.
