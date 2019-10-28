@@ -23,4 +23,4 @@ Charles Wang. (2019, September 28). NHERI-SimCenter/SURF: v0.2.0 (Version v0.2.0
 
 ## Acknowledgement
 
-This material is based upon work supported by the `National Science Foundation` <img src="https://raw.githubusercontent.com/NHERI-SimCenter/SURF/master/docs/images/nsf.png"  alt="NSF"/> under Grant No. 1612843. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the National Science Foundation.
+This material is based upon work supported by the <img src="https://raw.githubusercontent.com/NHERI-SimCenter/SURF/master/docs/images/nsf.png"  width="20px"  alt="NSF"/> `National Science Foundation` under Grant No. 1612843. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the National Science Foundation.
