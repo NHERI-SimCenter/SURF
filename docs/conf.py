@@ -123,3 +123,8 @@ html_css_files = [
 	'custom.css'
 ]
 
+# you need to modify custom.js for different git channels
+html_js_files = [
+    'custom.js',
+	'https://sidecar.gitter.im/dist/sidecar.v1.js'
+]
