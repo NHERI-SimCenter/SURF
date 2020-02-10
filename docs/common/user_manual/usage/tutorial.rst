@@ -1,7 +1,13 @@
 .. _lbl-usage:
 
-Usage
+Tutorial
 ================
+
+In this section, code snippets showing how to use |surfName| is presented for quick start. 
+A more detailed example can be found in :ref:`lbl-vnv`, in which there is a jupyter notebook that can run in Google Colab.
+
+Neural network
+---------------
 
 The example below shows how to train a ``neural network`` on a data set, and use it to predict.
 
@@ -43,6 +49,8 @@ The example below shows how to train a ``neural network`` on a data set, and use
     predicted = nn.predict(unkown_point) 
 
 
+Random field
+--------------
 
 The example below shows how to define a `spatial model` for a data set, and insert it into `random field` to predict.
 

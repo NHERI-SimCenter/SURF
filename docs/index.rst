@@ -35,10 +35,11 @@ Using neural network, |appName| trains itself on the known dataset and predicts 
    :maxdepth: 1
    :numbered: 2
 
-   
+   common/license
    common/user_manual/installation/installation
    common/user_manual/usage/tutorial 
-   common/license
+   common/user_manual/bugs
+   
 
 
 .. _lbl-technical-manual:
@@ -56,10 +57,12 @@ Using neural network, |appName| trains itself on the known dataset and predicts 
 
 .. toctree::
    :caption: Developer Manual
-   :maxdepth: 2
+   :maxdepth: 1
    :numbered: 2
 
-   common/developer_manual/dev
+   common/developer_manual/how_to_extend/how_to_extend
+   common/developer_manual/coding_style/coding_style
+
 
 
 How to cite
