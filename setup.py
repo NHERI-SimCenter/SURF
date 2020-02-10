@@ -32,7 +32,7 @@ setup(
     install_requires=read_requirements('requirements.txt'),
     include_package_data=True,
     license="BSD 3-Clause",
-    keywords=['random field', 'spatial uncertainty', 'surf', 'surf library', 'surf framework'],
+    keywords=['pySURF', 'random field', 'spatial uncertainty', 'surf', 'surf library', 'surf framework'],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',

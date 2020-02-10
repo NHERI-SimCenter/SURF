@@ -11,6 +11,7 @@
 
 
 from __future__ import absolute_import, division, print_function
+import os
 import pathlib
 import random
 import numpy as np
@@ -37,7 +38,7 @@ class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
-    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None, distScaler = 100000., numNei=10, trainFrac=0.8):
+    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None, distScaler = 100000., numNei=10, trainFrac=0.8, writeTmpData=False, workDir='./tmp', saveFigs=True, plotFigs=True):
         '''
         X: input
         Y: output
@@ -59,6 +60,11 @@ class SpatialNeuralNet:
 
         self.numNei = numNei
         self.distScaler = distScaler
+
+        self.writeTmpData = writeTmpData
+        self.workDir = workDir
+        self.saveFigs = saveFigs
+        self.plotFigs = plotFigs
 
         if rawData is not None:
             self.rawData = rawData
@@ -102,6 +108,13 @@ class SpatialNeuralNet:
         # test model
         #self.test()
 
+        if not os.path.exists(workDir):
+            pathlib.Path(workDir).mkdir(parents=True, exist_ok=True)
+
+        if writeTmpData:
+            if rawData is not None:
+                np.savetxt(workDir+'/test_dataset.txt', self.rawData[indTest,:])
+                np.savetxt(workDir+'/train_dataset.txt', self.rawData[indTrain,:])
 
 
     def processRawData(self):
@@ -138,6 +151,7 @@ class SpatialNeuralNet:
 
     # Build the model
     def build_model(self):
+        print("Building the neural network ...\n")
         archi = []
         archi.append(layers.Dense(self.architecture[0], activation=tf.nn.relu, input_shape=[len(self.train_dataset.T)]))
         for i in self.architecture[1:-1]:
@@ -202,6 +216,7 @@ class SpatialNeuralNet:
         '''
 
     def train(self):
+        print("Training the neural network ... \n")
         self.model.summary()
         # The patience parameter is the amount of epochs to check for improvement
         early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
@@ -212,8 +227,10 @@ class SpatialNeuralNet:
         hist['epoch'] = history.epoch
         print('\n')
         print(hist.tail())
-        self.plot_history(history)
-        #plt.savefig('data/NN_ContinuumWall_TrainingLoss_V1.png')
+        if self.plotFigs:
+            self.plot_history(history)
+        #plt.savefig('data/NN_TrainingLoss.png')
+        #plt.savefig('data/NN_TrainingLoss.pdf')
 
         loss, mae, mse = self.model.evaluate(self.normed_test_data, self.test_labels, verbose=0)
         print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
@@ -225,36 +242,75 @@ class SpatialNeuralNet:
         # test
         test_predictions = self.model.predict(self.normed_test_data).flatten()
 
+        if self.writeTmpData:
+            np.savetxt(self.workDir+'/test_predictions.txt', test_predictions)
+
+
         plt.figure(figsize=(20,10))
         plt.subplot(1,2,1)
-        trueValues = self.test_labels
+        trueValues = self.test_labels.flatten()
         #predictValues = test_predictions[0::5]
         predictValues = test_predictions
-        print(trueValues.flatten())
+        print(trueValues)
         print(predictValues)
 
-        plt.scatter(trueValues.flatten(), predictValues)
-        plt.xlabel('True Values [label]')
-        plt.ylabel('Predictions [label]')
+        plt.scatter(trueValues, predictValues, marker='o', c="red", alpha=0.01)
+        plt.xlabel('True Values', fontsize=30)
+        plt.ylabel('Predictions', fontsize=30)
         plt.axis('equal')
         plt.axis('square')
+
+        #minV = min([min(predictValues),min(trueValues)])
+        #maxV = max([max(predictValues),max(trueValues)])
+        minV = min(trueValues)
+        maxV = max(trueValues)
+        marginV = 0.1 * (maxV - minV)
         
-        plt.xlim([0,plt.xlim()[1]])
-        plt.ylim([0,plt.ylim()[1]])
-        _ = plt.plot([-100, 100], [-100, 100])
+        plt.xlim(minV-marginV,maxV+marginV)
+        plt.ylim(minV-marginV,maxV+marginV)
+        plt.tick_params(axis='x', labelsize=25)
+        plt.tick_params(axis='y', labelsize=25)
+        plt.plot([minV-marginV, minV-marginV,maxV+marginV], [minV-marginV, minV-marginV,maxV+marginV],'k-')
 
         
+        '''
+        # year built
+        plt.xlim(1875, 2050)
+        plt.ylim(1875, 2050)
+        '''
+        
+
+        '''
+        # num of stories
+        plt.xlim([plt.xlim()[0],plt.xlim()[1]])
+        plt.ylim([plt.xlim()[0],plt.ylim()[1]])
+        plt.plot([0, 2050], [0, 2050],'k-')
+        '''
 
         plt.subplot(1,2,2)
-        error = predictValues - trueValues.flatten()
+        error = predictValues - trueValues
+        lenV = max([abs(min(error)),abs(max(error))])
+
+
         print('errors:  ')
         print(error)
-        plt.hist(error, bins=25)
+        plt.xlim(0.-lenV*1.2, lenV*1.2)
+        plt.hist(error, facecolor='g') 
+        #plt.hist(error, bins=25, facecolor='g') #year built
+        #plt.xlim(-100, 100) # year built
+        #plt.hist(error, bins=36, facecolor='g') #num of stories
+        #plt.xlim(-26, 26) # num of stories
 
-        plt.xlabel("Prediction Error [label]")
-        _ = plt.ylabel("Count")
-
+        plt.xlabel("Prediction Error", fontsize=30)
+        plt.ylabel("Count", fontsize=30)
+        plt.tick_params(axis='x', labelsize=25)
+        #plt.savefig('data/Predictions_error.pdf')
         #plt.savefig('data/Predictions_error.png')
+        if self.saveFigs:
+            plt.savefig(self.workDir+'/Prediction_errors.png')
+            plt.savefig(self.workDir+'/Prediction_errors.pdf')
+            print("Results and figures are saved in ", self.workDir)
+
         plt.show()
 
     def test_classification_model(self):
@@ -332,7 +388,10 @@ class SpatialNeuralNet:
         plt.legend()
         #plt.ylim([0,1])
         '''
-        #plt.show()
+        if self.saveFigs:
+            plt.savefig(self.workDir + '/NN_TrainingLoss.png')
+            plt.savefig(self.workDir + '/NN_TrainingLoss.pdf')
+        plt.show()
 
 
     def getX( self, n, N=0 ):

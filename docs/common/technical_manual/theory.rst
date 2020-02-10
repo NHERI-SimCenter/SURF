@@ -83,8 +83,8 @@ Therefore the variance of the predicted values is
     &=E[\mu+\boldsymbol{\phi}^T\boldsymbol{\epsilon}(\boldsymbol{u})-{\mu}-{\epsilon}({u}_\alpha)]^2  \\
     &=E[\boldsymbol{\phi}^T\boldsymbol{\epsilon}(\boldsymbol{u})-{\epsilon}({u}_\alpha)]^2  \\
     &=\rm{Var}\{\boldsymbol{\phi}^T\boldsymbol{\epsilon}(\boldsymbol{u}) \} 
-    +\rm{Var}\{ {\epsilon}({u}_\alpha) \}-2\rm{COV}\{\boldsymbol{\phi}^T\boldsymbol{\epsilon}(\boldsymbol{u}),{\epsilon}({u}_\alpha) \} 
-    =\boldsymbol{\phi}^T\Sigma_{\boldsymbol{u},\boldsymbol{u}}\boldsymbol{\phi} + \rm{Var}\{\boldsymbol{Z}(\boldsymbol{u})\} -2\boldsymbol{\phi}^T \Sigma_{\boldsymbol{u},\alpha} \\
+    +\rm{Var}\{ {\epsilon}({u}_\alpha) \}-2\rm{COV}\{\boldsymbol{\phi}^T\boldsymbol{\epsilon}(\boldsymbol{u}),{\epsilon}({u}_\alpha) \} \\
+    &=\boldsymbol{\phi}^T\Sigma_{\boldsymbol{u},\boldsymbol{u}}\boldsymbol{\phi} + \rm{Var}\{\boldsymbol{Z}(\boldsymbol{u})\} -2\boldsymbol{\phi}^T \Sigma_{\boldsymbol{u},\alpha} \\
 
 
 To optimize :math:`\rm{Var}\{ Z^*({u_\alpha}) - Z({u_\alpha})\}`, 
@@ -141,10 +141,10 @@ Neural Network
 
 Artificial neural networks (ANNs) are a form of artificial intelligence which attempt to mimic the behavior of the human brain and nervous system.  Many researchers have described the structure and operation of ANNs 
 (e.g. :cite:`Hecht:1990`; :cite:`Zurada:1992`; :cite:`Fausett:1994`). A typical structure of ANNs consists of a number of nodes (processing elements), that are usually arranged in layers: an input layer, 
-an output layer and one or more hidden layers (Figure :numref:`fig:ANN`).
+an output layer and one or more hidden layers (:numref:`fig:ANN`).
 The input from each node in the previous layer (:math:`x_i`) is multiplied by an adjustable connection weight (:math:`w_{ji}`). At each node, the weighted input signals are summed and a threshold value (:math:`\theta_j`) is added. This combined input 
 (:math:`I_j`) is then passed through a non-linear transfer function (f(.)) to produce the output of the PE (:math:`y_i`). 
-The output of one PE provides the input to the nodes in the next layer. This process is summarized in :eq:`eq:pro_ann1` and :eq:`eq:pro_ann2` and illustrated in Figure :numref:`fig:ANN`.
+The output of one PE provides the input to the nodes in the next layer. This process is summarized in :eq:`eq:pro_ann1` and :eq:`eq:pro_ann2` and illustrated in :numref:`fig:ANN`.
 
 .. math::
     :label: eq:pro_ann1
