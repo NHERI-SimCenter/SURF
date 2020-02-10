@@ -16,7 +16,7 @@ The most convenient way to install |surfName| is to use pip.
 Other ways to install
 ------------------------
 
-The most convenient way to install |surfName| is to use pip. 
+Another way to install |surfName| is to use python to install it from the source code.
 
 .. code-block:: none 
 
