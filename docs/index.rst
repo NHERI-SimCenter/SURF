@@ -13,7 +13,21 @@ Spatial Uncertainty Research Framework
 
 What is |appName|
 ---------------------------
-SURF is a Python package for performing spatial uncertainty analysis using random fields and machine leaning.
+
+
+
+Many environmental and geographical models, such as those used to understand and manage natural systems, and those used in climate studies, 
+often rely on spatially distributed data as input that are known imperfectly and there is a lack of knowledge about the distribution pattern of a variable in a space.
+Hence spatial uncertainty occurs. Uncertainty in the input data can propagate into model predictions. 
+
+|appName| is a Python package for performing spatial uncertainty analysis using random fields and machine leaning. 
+The user provides a spatially scattered dataset, |appName| learns the variation patterns in the dataset 
+and predict values at locations where there are no observations.
+Using random fields, the user can specify a correlation function to guide the simulation of uncertainty propagation.
+Using neural network, |appName| trains itself on the known dataset and predicts missing values based on the spatial patterns it found in the data.
+
+
+
 
 
 .. toctree::
@@ -23,7 +37,7 @@ SURF is a Python package for performing spatial uncertainty analysis using rando
 
    
    common/user_manual/installation/installation
-   common/user_manual/usage/usage 
+   common/user_manual/usage/tutorial 
    common/license
 
 
@@ -35,6 +49,7 @@ SURF is a Python package for performing spatial uncertainty analysis using rando
    :numbered: 2
 
    common/technical_manual/theory
+   common/technical_manual/vnv
 
 
 .. _lbl-developer-manual:
