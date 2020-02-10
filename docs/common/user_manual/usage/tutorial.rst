@@ -3,7 +3,7 @@
 Tutorial
 ================
 
-In this section, code snippets showing how to use |surfName| is presented for quick start. 
+In this section, code snippets showing how to use |surfName| are presented for quick start. 
 A more detailed example can be found in :ref:`lbl-vnv`, in which there is a jupyter notebook that can run in Google Colab.
 
 Neural network
@@ -22,7 +22,7 @@ The example below shows how to train a ``neural network`` on a data set, and use
     data = load your data here           
     # data is a numpy matrix with columns: [x,y,value]
     # ... see SURF.ET-AI.py for an example:
-    # https://github.com/charlesxwang/SURF/blob/master/SURF.ET-AI.py
+    # https://github.com/NHERI-SimCenter/SURF/blob/master/examples/demo-NN.py
 
     #---------------------------------------
     # 2. Train the neural network
@@ -66,7 +66,7 @@ The example below shows how to define a `spatial model` for a data set, and inse
     data = load your data here         
     # data is a numpy matrix with columns: [x,y,value]
     # ... see SURF.ET.py for an example:
-    #  https://github.com/charlesxwang/SURF/blob/master/SURF.ET-AI.py
+    # https://github.com/NHERI-SimCenter/SURF/blob/master/examples/demo-NN.py
 
     #---------------------------------------
     # 2. Define spatial model 
