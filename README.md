@@ -9,7 +9,7 @@
 
 ## Documentation
 
-[Online documentation](https://nheri-simcenter.github.io/SURF)
+[Online documentation](https://nheri-simcenter.github.io/SURF-Documentation/)
 
 More details in paper: <a href="https://arxiv.org/abs/1910.06391">here</a>.
 
