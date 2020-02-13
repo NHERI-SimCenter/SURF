@@ -288,7 +288,7 @@ class SpatialNeuralNet:
         '''
 
         plt.subplot(1,2,2)
-        error = predictValues - trueValues
+        error = trueValues - predictValues
         lenV = max([abs(min(error)),abs(max(error))])
 
 
