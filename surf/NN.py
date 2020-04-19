@@ -166,8 +166,8 @@ class SpatialNeuralNet:
 
         model = keras.Sequential(archi)
         #optimizer = tf.train.RMSPropOptimizer(0.001)
-        optimizer = tf.train.AdamOptimizer(1e-4)
-        model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
+        #optimizer = tf.train.AdamOptimizer(1e-4)
+        model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mse'])
         self.model = model
         return model
 
@@ -214,6 +214,11 @@ class SpatialNeuralNet:
         self.model.save_weights("Data/NNModel_ContinuumWall_V1.h5")
         print("Saved model to disk")
         '''
+    def save(self, modelName = 'surf_model'):
+        self.model.save(self.workDir+'/'+modelName)
+        self.model.save(self.workDir+'/'+modelName + '/saved_model.h5')
+        print('model saved at ',self.workDir+'/'+modelName)
+
 
     def train(self):
         print("Training the neural network ... \n")
@@ -371,9 +376,9 @@ class SpatialNeuralNet:
         plt.figure()
         plt.xlabel('Epoch')
         plt.ylabel('Mean Abs Error ')
-        plt.plot(hist['epoch'], hist['mean_absolute_error'],
+        plt.plot(hist['epoch'], hist['mae'],
                  label='Train Error')
-        plt.plot(hist['epoch'], hist['val_mean_absolute_error'],
+        plt.plot(hist['epoch'], hist['val_mae'],
                  label = 'Val Error')
         plt.legend()
         #plt.ylim([0,1])
