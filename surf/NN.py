@@ -12,6 +12,7 @@
 
 from __future__ import absolute_import, division, print_function
 import os
+import json
 import pathlib
 import random
 import numpy as np
@@ -38,7 +39,7 @@ class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
-    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None, distScaler = 100000., numNei=10, trainFrac=0.8, writeTmpData=False, workDir='./tmp', saveFigs=True, plotFigs=True):
+    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None, distScaler = 100000., numNei=10, trainFrac=0.8,testFrac=None, writeTmpData=False, workDir='./tmp', saveFigs=True, plotFigs=True):
         '''
         X: input
         Y: output
@@ -66,6 +67,7 @@ class SpatialNeuralNet:
         self.saveFigs = saveFigs
         self.plotFigs = plotFigs
 
+        hasInput = True
         if rawData is not None:
             self.rawData = rawData
             self.processRawData()
@@ -73,51 +75,54 @@ class SpatialNeuralNet:
             self.X = X
             self.Y = Y
         else:
-            print("input data must be provided")
-            exit()
+            print("No input is provided, assuming this is model will be used for predicting. ")
+            hasInput = False
 
-        
-        self.trainFrac = trainFrac
+        if hasInput:
+            if testFrac is not None: # testFrac dominates
+                self.trainFrac = 1.0 - testFrac
+            else: self.trainFrac = trainFrac
 
-        self.EPOCHS = 5000
-
-
-        n = len(self.Y)
-        ind = random.sample(range(n),n)
-        indTrain = ind[0:np.floor(n*trainFrac).astype(int)]
-        indTest = ind[np.floor(n*trainFrac).astype(int):]
-
- 
-        self.train_labels = self.Y[indTrain]
-        self.train_dataset = self.X[indTrain]
-        self.test_labels = self.Y[indTest]
-        self.test_dataset = self.X[indTest]
-
-        self.mean_train_dataset = np.mean(self.train_dataset, axis = 0)
-        self.std_train_dataset = np.std(self.train_dataset, axis = 0)
-
-        self.normed_train_data = self.norm(self.train_dataset)
-        self.normed_test_data = self.norm(self.test_dataset)
-
-        # build model
-        #self.model = self.build_model()
-
-        # train model
-        #self.train()
-
-        # test model
-        #self.test()
-
-        if not os.path.exists(workDir):
-            pathlib.Path(workDir).mkdir(parents=True, exist_ok=True)
-
-        if writeTmpData:
-            if rawData is not None:
-                np.savetxt(workDir+'/test_dataset.txt', self.rawData[indTest,:])
-                np.savetxt(workDir+'/train_dataset.txt', self.rawData[indTrain,:])
+            self.EPOCHS = 5000
 
 
-    def processRawData(self):
+            n = self.X.shape[0]
+            ind = random.sample(range(n),n)
+            indTrain = ind[0:np.floor(n*trainFrac).astype(int)]
+            indTest = ind[np.floor(n*trainFrac).astype(int):]
+
+            self.train_dataset = self.X[indTrain]
+            self.test_dataset = self.X[indTest]
+            if self.Y is not None:
+                self.train_labels = self.Y[indTrain]
+                self.test_labels = self.Y[indTest]
+
+
+            self.mean_train_dataset = np.mean(self.train_dataset, axis = 0)
+            self.std_train_dataset = np.std(self.train_dataset, axis = 0)
+
+            self.normed_train_data = self.norm(self.train_dataset)
+            self.normed_test_data = self.norm(self.test_dataset)
+
+            # build model
+            #self.model = self.build_model()
+
+            # train model
+            #self.train()
+
+            # test model
+            #self.test()
+
+            if not os.path.exists(workDir):
+                pathlib.Path(workDir).mkdir(parents=True, exist_ok=True)
+
+            if writeTmpData:
+                if rawData is not None:
+                    np.savetxt(workDir+'/test_dataset.txt', self.rawData[indTest,:])
+                    np.savetxt(workDir+'/train_dataset.txt', self.rawData[indTrain,:])
+
+
+    def processRawData(self,rawData=None,numColumnsY=1):
         numNei = self.numNei
         perNei = 2
         numPre = 2
@@ -125,14 +130,63 @@ class SpatialNeuralNet:
         # Defining input size, hidden layer size, output size and batch size respectively
         n_in, n_h, n_out, batch_size = numNei * perNei + numPre, 10, 1, 1000
 
-        rawData = self.rawData[:,:-1]
-        rawTarget = self.rawData[:,-1]
+        if rawData is None:# normally built model
+            if numColumnsY == 1:
+                rawData = self.rawData[:,:0-numColumnsY]
+                rawTarget = self.rawData[:,-numColumnsY:]
+                self.Y = rawTarget
+            elif  numColumnsY == 0:# no target
+                rawData = self.rawData
+            else:
+                print('SURF currently can not deal with multi-dimensional targets.')
+                exit()
+        else:# loaded model
+            if numColumnsY == 1:
+                rawTarget = self.rawData[:,-numColumnsY:]
+                self.Y = rawTarget
+            elif  numColumnsY == 0:# no target
+                rawData = rawData
+            else:
+                print('SURF currently can not deal with multi-dimensional targets.')
+                exit()
 
         # Create data
         coordsAll = np.array(rawData, dtype=np.float32)
         kdTree = spatial.KDTree(coordsAll)
         data = []
-        for i in range(len(rawTarget)):
+        for i in range(rawData.shape[0]):
+            distance,index = kdTree.query(rawData[i,:],numNei+1) # nearest 10 points
+            distance = distance[1:]
+            index = index[1:]
+            datatmp = rawData[i,:]
+
+            for j in range(numNei):
+                if numColumnsY==1:
+                    datatmp = np.append(np.append(datatmp, distance[j]*self.distScaler), rawTarget[index[j]])
+                elif numColumnsY==0:
+                    datatmp = np.append(datatmp, distance[j]*self.distScaler)
+                else:
+                    print('SURF currently can not deal with multi-dimensional targets.')
+                    exit()
+            data.append(datatmp.tolist())
+        data = np.array(data)
+        self.X = data
+        return data
+
+    def processRawDataLoad(self,rawData=None):
+        numNei = self.numNei
+        perNei = 2
+        numPre = 2
+
+        # Defining input size, hidden layer size, output size and batch size respectively
+        n_in, n_h, n_out, batch_size = numNei * perNei + numPre, 10, 1, 1000
+
+        # Create data
+        coordsAll = np.array(self.rawData[:,0:-1], dtype=np.float32)
+        rawTarget = self.rawData[:,-1]
+        kdTree = spatial.KDTree(coordsAll)
+        data = []
+        for i in range(rawData.shape[0]):
             distance,index = kdTree.query(rawData[i,:],numNei+1) # nearest 10 points
             distance = distance[1:]
             index = index[1:]
@@ -140,10 +194,11 @@ class SpatialNeuralNet:
 
             for j in range(numNei):
                 datatmp = np.append(np.append(datatmp, distance[j]*self.distScaler), rawTarget[index[j]])
+
             data.append(datatmp.tolist())
         data = np.array(data)
-        self.X = data
-        self.Y = rawTarget
+        #self.X = data
+        return data       
 
 
     def norm(self, v):
@@ -166,10 +221,24 @@ class SpatialNeuralNet:
 
         model = keras.Sequential(archi)
         #optimizer = tf.train.RMSPropOptimizer(0.001)
-        optimizer = tf.train.AdamOptimizer(1e-4)
-        model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
+        #optimizer = tf.train.AdamOptimizer(1e-4)
+        model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mse'])
         self.model = model
         return model
+    
+    def load_model(self, modelName):
+        if os.path.isdir(modelName):
+            self.modelLoadedModelPath = modelName
+        else: self.modelLoadedModelPath = self.workDir + '/' + modelName
+
+        with open(self.modelLoadedModelPath+'/config.json') as json_file:
+            m = json.load(json_file)
+        self.numNei = m['numNei']
+        
+        self.model = tf.keras.models.load_model(self.modelLoadedModelPath)
+
+        # Check its architecture
+        self.model.summary()
 
     # Build the classification model
     def build_classification_model(self, numTypes):
@@ -214,6 +283,19 @@ class SpatialNeuralNet:
         self.model.save_weights("Data/NNModel_ContinuumWall_V1.h5")
         print("Saved model to disk")
         '''
+    def save(self, modelName = 'surf_model'):
+        modelDir = self.workDir+'/'+modelName
+        self.model.save(modelDir)
+        self.model.save(modelDir + '/saved_model.h5')
+        np.savetxt(modelDir+'/mean_train_dataset.txt',self.mean_train_dataset)
+        np.savetxt(modelDir+'/std_train_dataset.txt',self.std_train_dataset)
+        m = {'modelName':modelName,
+            'numNei':self.numNei}
+        with open(modelDir+'/config.json', 'w') as outfile:
+            json.dump(m, outfile)
+
+        print('model saved at ',modelDir)
+
 
     def train(self):
         print("Training the neural network ... \n")
@@ -236,7 +318,88 @@ class SpatialNeuralNet:
         print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
 
 
+    def predictMulti(self,X):
+        self.mean_train_dataset = np.loadtxt(self.modelLoadedModelPath+'/mean_train_dataset.txt')
+        self.std_train_dataset = np.loadtxt(self.modelLoadedModelPath+'/std_train_dataset.txt')
+        X = self.processRawDataLoad(rawData=X)
+        print([X.shape, self.mean_train_dataset.shape, self.std_train_dataset.shape])
+        #print([X.shape,self.mean_train_dataset.shape,self.std_train_dataset.shape])
+        X = (X - self.mean_train_dataset) / self.std_train_dataset
 
+        #X = self.norm(X)[:,0:-1]
+        Y = self.model.predict(X).flatten()
+        np.savetxt(self.modelLoadedModelPath+'/Y.txt', Y)
+        print("Predictions are saved in ", self.modelLoadedModelPath+'/Y.txt')
+        return Y
+
+    def plot(self, trueValues, predictValues):
+        if self.Y is not None:
+            plt.figure(figsize=(20,10))
+            plt.subplot(1,2,1)
+            #trueValues = self.test_labels.flatten()
+            ##predictValues = test_predictions[0::5]
+            #predictValues = test_predictions
+            print(trueValues)
+            print(predictValues)
+
+            plt.scatter(trueValues, predictValues, marker='o', c="red", alpha=0.01)
+            plt.xlabel('True Values', fontsize=30)
+            plt.ylabel('Predictions', fontsize=30)
+            plt.axis('equal')
+            plt.axis('square')
+
+            #minV = min([min(predictValues),min(trueValues)])
+            #maxV = max([max(predictValues),max(trueValues)])
+            minV = min(trueValues)
+            maxV = max(trueValues)
+            marginV = 0.1 * (maxV - minV)
+
+            plt.xlim(minV-marginV,maxV+marginV)
+            plt.ylim(minV-marginV,maxV+marginV)
+            plt.tick_params(axis='x', labelsize=25)
+            plt.tick_params(axis='y', labelsize=25)
+            plt.plot([minV-marginV, minV-marginV,maxV+marginV], [minV-marginV, minV-marginV,maxV+marginV],'k-')
+
+
+            '''
+            # year built
+            plt.xlim(1875, 2050)
+            plt.ylim(1875, 2050)
+            '''
+
+
+            '''
+            # num of stories
+            plt.xlim([plt.xlim()[0],plt.xlim()[1]])
+            plt.ylim([plt.xlim()[0],plt.ylim()[1]])
+            plt.plot([0, 2050], [0, 2050],'k-')
+            '''
+
+            plt.subplot(1,2,2)
+            error = trueValues - predictValues
+            lenV = max([abs(min(error)),abs(max(error))])
+
+
+            print('errors:  ')
+            print(error)
+            plt.xlim(0.-lenV*1.2, lenV*1.2)
+            plt.hist(error, facecolor='g') 
+            #plt.hist(error, bins=25, facecolor='g') #year built
+            #plt.xlim(-100, 100) # year built
+            #plt.hist(error, bins=36, facecolor='g') #num of stories
+            #plt.xlim(-26, 26) # num of stories
+
+            plt.xlabel("Prediction Error", fontsize=30)
+            plt.ylabel("Count", fontsize=30)
+            plt.tick_params(axis='x', labelsize=25)
+            #plt.savefig('data/Predictions_error.pdf')
+            #plt.savefig('data/Predictions_error.png')
+            if self.saveFigs:
+                plt.savefig(self.workDir+'/Prediction_errors.png')
+                plt.savefig(self.workDir+'/Prediction_errors.pdf')
+                print("Figures are saved in ", self.workDir)
+
+            plt.show()
 
     def test(self):
         # test
@@ -244,78 +407,19 @@ class SpatialNeuralNet:
 
         if self.writeTmpData:
             np.savetxt(self.workDir+'/test_predictions.txt', test_predictions)
-
-
-        plt.figure(figsize=(20,10))
-        plt.subplot(1,2,1)
+            print("Figures are saved in ", self.workDir+'/test_predictions.txt')
+        
         trueValues = self.test_labels.flatten()
-        #predictValues = test_predictions[0::5]
-        predictValues = test_predictions
-        print(trueValues)
-        print(predictValues)
+        self.plot(trueValues, test_predictions)
 
-        plt.scatter(trueValues, predictValues, marker='o', c="red", alpha=0.01)
-        plt.xlabel('True Values', fontsize=30)
-        plt.ylabel('Predictions', fontsize=30)
-        plt.axis('equal')
-        plt.axis('square')
-
-        #minV = min([min(predictValues),min(trueValues)])
-        #maxV = max([max(predictValues),max(trueValues)])
-        minV = min(trueValues)
-        maxV = max(trueValues)
-        marginV = 0.1 * (maxV - minV)
-        
-        plt.xlim(minV-marginV,maxV+marginV)
-        plt.ylim(minV-marginV,maxV+marginV)
-        plt.tick_params(axis='x', labelsize=25)
-        plt.tick_params(axis='y', labelsize=25)
-        plt.plot([minV-marginV, minV-marginV,maxV+marginV], [minV-marginV, minV-marginV,maxV+marginV],'k-')
-
-        
-        '''
-        # year built
-        plt.xlim(1875, 2050)
-        plt.ylim(1875, 2050)
-        '''
-        
-
-        '''
-        # num of stories
-        plt.xlim([plt.xlim()[0],plt.xlim()[1]])
-        plt.ylim([plt.xlim()[0],plt.ylim()[1]])
-        plt.plot([0, 2050], [0, 2050],'k-')
-        '''
-
-        plt.subplot(1,2,2)
-        error = trueValues - predictValues
-        lenV = max([abs(min(error)),abs(max(error))])
-
-
-        print('errors:  ')
-        print(error)
-        plt.xlim(0.-lenV*1.2, lenV*1.2)
-        plt.hist(error, facecolor='g') 
-        #plt.hist(error, bins=25, facecolor='g') #year built
-        #plt.xlim(-100, 100) # year built
-        #plt.hist(error, bins=36, facecolor='g') #num of stories
-        #plt.xlim(-26, 26) # num of stories
-
-        plt.xlabel("Prediction Error", fontsize=30)
-        plt.ylabel("Count", fontsize=30)
-        plt.tick_params(axis='x', labelsize=25)
-        #plt.savefig('data/Predictions_error.pdf')
-        #plt.savefig('data/Predictions_error.png')
-        if self.saveFigs:
-            plt.savefig(self.workDir+'/Prediction_errors.png')
-            plt.savefig(self.workDir+'/Prediction_errors.pdf')
-            print("Results and figures are saved in ", self.workDir)
-
-        plt.show()
 
     def test_classification_model(self):
         # test
         test_predictions = self.model.predict(self.normed_test_data)
+
+        if self.writeTmpData:
+            np.savetxt(self.workDir+'/test_predictions.txt', test_predictions)
+            print("Results are saved in ", self.workDir+'/test_predictions.txt')
 
 
         plt.figure(figsize=(20,10))
@@ -342,6 +446,11 @@ class SpatialNeuralNet:
         plt.hist(error, bins = 25)
         plt.xlabel("Prediction Error [label]")
         _ = plt.ylabel("Count")
+
+        if self.saveFigs:
+            plt.savefig(self.workDir+'/Prediction_errors.png')
+            plt.savefig(self.workDir+'/Prediction_errors.pdf')
+            print("Figures are saved in ", self.workDir)
 
         #plt.savefig('data/Predictions_classification_error.png')
         plt.show()
@@ -371,9 +480,9 @@ class SpatialNeuralNet:
         plt.figure()
         plt.xlabel('Epoch')
         plt.ylabel('Mean Abs Error ')
-        plt.plot(hist['epoch'], hist['mean_absolute_error'],
+        plt.plot(hist['epoch'], hist['mae'],
                  label='Train Error')
-        plt.plot(hist['epoch'], hist['val_mean_absolute_error'],
+        plt.plot(hist['epoch'], hist['val_mae'],
                  label = 'Val Error')
         plt.legend()
         #plt.ylim([0,1])

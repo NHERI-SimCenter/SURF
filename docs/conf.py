@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import sphinx_rtd_theme
 sys.path.append(os.path.abspath('./sphinx_ext/'))
 #sys.path.insert(0, os.path.abspath('.'))
 
@@ -11,7 +12,7 @@ copyright = '2020, NHERI SimCenter'
 author = 'Charles Wang'
 
 # The short X.Y version
-version = '0.2'
+#version = '0.2'
 # The full version, including alpha/beta/rc tags
 release = '0.2.4.2'
 
@@ -107,11 +108,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 #---sphinx-themes-----
-html_theme = 'press'
+html_theme = 'sphinx_rtd_theme' #'press'
 
 html_theme_options = {
 	'logo_only': True,
-	'style_nav_header_background': '#000000', #64B5F6 #607D8B
+	'style_nav_header_background': '#F2F2F2', #64B5F6 #607D8B
 }
 
 html_logo = 'images/SimCenter_SURF_logo.png'
@@ -120,11 +121,14 @@ numfig = True
 numfig_secnum_depth = 2
 
 html_css_files = [
-	'custom.css'
+	'css/custom.css'
 ]
 
 # you need to modify custom.js for different git channels
 html_js_files = [
-    'custom.js',
-	'https://sidecar.gitter.im/dist/sidecar.v1.js'
+    #'custom.js',
+	#'https://sidecar.gitter.im/dist/sidecar.v1.js'
 ]
+
+
+# nav background color is #F2F2F2
