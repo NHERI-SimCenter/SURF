@@ -39,7 +39,7 @@ class SpatialNeuralNet:
     """ A Neural Net Doing Spatial Predictions. """
 
 
-    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None, distScaler = 100000., numNei=10, trainFrac=0.8,testFrac=None, writeTmpData=False, workDir='./tmp', saveFigs=True, plotFigs=True):
+    def __init__(self, X=None, Y=None, rawData=None, architecture=None, activation=None,modelType='regression', distScaler = 100000., numNei=10, trainFrac=0.8,testFrac=None, writeTmpData=False, workDir='./tmp', saveFigs=True, plotFigs=True):
         '''
         X: input
         Y: output
@@ -58,6 +58,7 @@ class SpatialNeuralNet:
             self.architecture = architecture
         
         self.activation = activation
+        self.modelType = modelType
 
         self.numNei = numNei
         self.distScaler = distScaler
@@ -205,26 +206,30 @@ class SpatialNeuralNet:
         return (v - self.mean_train_dataset) / self.std_train_dataset
 
     # Build the model
-    def build_model(self):
+    def build_model(self,numTypes=None):
         print("Building the neural network ...\n")
-        archi = []
-        archi.append(layers.Dense(self.architecture[0], activation=tf.nn.relu, input_shape=[len(self.train_dataset.T)]))
-        for i in self.architecture[1:-1]:
-            archi.append(layers.Dense(i, activation=tf.nn.relu))
-        if self.activation is None:
-            archi.append(layers.Dense(self.architecture[-1]))
-        elif self.activation == "sigmoid":
-            archi.append(layers.Dense(self.architecture[-1], activation=tf.nn.sigmoid)) # for 0~1
-        else:#
-            #TODO: add more activation fuctions
-            archi.append(layers.Dense(self.architecture[-1]))
+        if self.modelType == "classification":
+            model = self.build_classification_model(numTypes)
+            return model
+        else:
+            archi = []
+            archi.append(layers.Dense(self.architecture[0], activation=tf.nn.relu, input_shape=[len(self.train_dataset.T)]))
+            for i in self.architecture[1:-1]:
+                archi.append(layers.Dense(i, activation=tf.nn.relu))
+            if self.activation is None:
+                archi.append(layers.Dense(self.architecture[-1]))
+            elif self.activation == "sigmoid":
+                archi.append(layers.Dense(self.architecture[-1], activation=tf.nn.sigmoid)) # for 0~1
+            else:#
+                #TODO: add more activation fuctions
+                archi.append(layers.Dense(self.architecture[-1]))
 
-        model = keras.Sequential(archi)
-        #optimizer = tf.train.RMSPropOptimizer(0.001)
-        #optimizer = tf.train.AdamOptimizer(1e-4)
-        model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mse'])
-        self.model = model
-        return model
+            model = keras.Sequential(archi)
+            #optimizer = tf.train.RMSPropOptimizer(0.001)
+            #optimizer = tf.train.AdamOptimizer(1e-4)
+            model.compile(loss='mae', optimizer='adam', metrics=['mae', 'mse'])
+            self.model = model
+            return model
     
     def load_model(self, modelName):
         if os.path.isdir(modelName):
@@ -234,6 +239,7 @@ class SpatialNeuralNet:
         with open(self.modelLoadedModelPath+'/config.json') as json_file:
             m = json.load(json_file)
         self.numNei = m['numNei']
+        self.modelType = m['modelType']
         
         self.model = tf.keras.models.load_model(self.modelLoadedModelPath)
 
@@ -290,7 +296,8 @@ class SpatialNeuralNet:
         np.savetxt(modelDir+'/mean_train_dataset.txt',self.mean_train_dataset)
         np.savetxt(modelDir+'/std_train_dataset.txt',self.std_train_dataset)
         m = {'modelName':modelName,
-            'numNei':self.numNei}
+            'numNei':self.numNei,
+            'modelType':self.modelType}
         with open(modelDir+'/config.json', 'w') as outfile:
             json.dump(m, outfile)
 
@@ -298,41 +305,51 @@ class SpatialNeuralNet:
 
 
     def train(self):
-        print("Training the neural network ... \n")
-        self.model.summary()
-        # The patience parameter is the amount of epochs to check for improvement
-        early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-        print(self.train_labels)
-        history = self.model.fit(self.normed_train_data, self.train_labels, epochs=self.EPOCHS,
-                            validation_split = 0.2, verbose=0, callbacks=[early_stop, PrintDot()])
-        hist = pd.DataFrame(history.history)
-        hist['epoch'] = history.epoch
-        print('\n')
-        print(hist.tail())
-        if self.plotFigs:
-            self.plot_history(history)
-        #plt.savefig('data/NN_TrainingLoss.png')
-        #plt.savefig('data/NN_TrainingLoss.pdf')
+        if self.modelType == "classification":
+            model = self.train_classification_model()
 
-        loss, mae, mse = self.model.evaluate(self.normed_test_data, self.test_labels, verbose=0)
-        print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
+        else:
+
+            print("Training the neural network ... \n")
+            self.model.summary()
+            # The patience parameter is the amount of epochs to check for improvement
+            early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+            print(self.train_labels)
+            history = self.model.fit(self.normed_train_data, self.train_labels, epochs=self.EPOCHS,
+                                validation_split = 0.2, verbose=0, callbacks=[early_stop, PrintDot()])
+            hist = pd.DataFrame(history.history)
+            hist['epoch'] = history.epoch
+            print('\n')
+            print(hist.tail())
+            if self.plotFigs:
+                self.plot_history(history)
+            #plt.savefig('data/NN_TrainingLoss.png')
+            #plt.savefig('data/NN_TrainingLoss.pdf')
+
+            loss, mae, mse = self.model.evaluate(self.normed_test_data, self.test_labels, verbose=0)
+            print("Testing set Mean Abs Error: {:5.2f} ".format(mae))
 
 
     def predictMulti(self,X):
         self.mean_train_dataset = np.loadtxt(self.modelLoadedModelPath+'/mean_train_dataset.txt')
         self.std_train_dataset = np.loadtxt(self.modelLoadedModelPath+'/std_train_dataset.txt')
         X = self.processRawDataLoad(rawData=X)
-        print([X.shape, self.mean_train_dataset.shape, self.std_train_dataset.shape])
+        
         #print([X.shape,self.mean_train_dataset.shape,self.std_train_dataset.shape])
         X = (X - self.mean_train_dataset) / self.std_train_dataset
+        print(self.modelType)
 
         #X = self.norm(X)[:,0:-1]
-        Y = self.model.predict(X).flatten()
+        if self.modelType == 'classification':
+            Y = self.model.predict(X)
+            Y = np.argmax(Y,axis=1)
+        else: Y = self.model.predict(X).flatten()
         np.savetxt(self.modelLoadedModelPath+'/Y.txt', Y)
         print("Predictions are saved in ", self.modelLoadedModelPath+'/Y.txt')
         return Y
 
     def plot(self, trueValues, predictValues):
+        print(trueValues.shape, predictValues.shape)
         if self.Y is not None:
             plt.figure(figsize=(20,10))
             plt.subplot(1,2,1)
@@ -403,14 +420,18 @@ class SpatialNeuralNet:
 
     def test(self):
         # test
-        test_predictions = self.model.predict(self.normed_test_data).flatten()
+        if self.modelType == "classification":
+            model = self.test_classification_model()
 
-        if self.writeTmpData:
-            np.savetxt(self.workDir+'/test_predictions.txt', test_predictions)
-            print("Figures are saved in ", self.workDir+'/test_predictions.txt')
-        
-        trueValues = self.test_labels.flatten()
-        self.plot(trueValues, test_predictions)
+        else:
+            test_predictions = self.model.predict(self.normed_test_data).flatten()
+
+            if self.writeTmpData:
+                np.savetxt(self.workDir+'/test_predictions.txt', test_predictions)
+                print("Figures are saved in ", self.workDir+'/test_predictions.txt')
+
+            trueValues = self.test_labels.flatten()
+            self.plot(trueValues, test_predictions)
 
 
     def test_classification_model(self):
@@ -472,6 +493,22 @@ class SpatialNeuralNet:
         Y = np.argmax(self.model.predict([X]))
         return Y
 
+    def predictMulti_classification_model(self, X):
+        self.mean_train_dataset = np.loadtxt(self.modelLoadedModelPath+'/mean_train_dataset.txt')
+        self.std_train_dataset = np.loadtxt(self.modelLoadedModelPath+'/std_train_dataset.txt')
+        X = self.processRawDataLoad(rawData=X)
+        
+        #print([X.shape,self.mean_train_dataset.shape,self.std_train_dataset.shape])
+        X = (X - self.mean_train_dataset) / self.std_train_dataset
+
+        #X = self.norm(X)[:,0:-1]
+        if self.modelType == 'classification':
+            Y = self.model.predict(X)
+            Y = np.argmax(Y,axis=1)
+        else: Y = self.model.predict(X).flatten()
+        np.savetxt(self.modelLoadedModelPath+'/Y.txt', Y)
+        print("Predictions are saved in ", self.modelLoadedModelPath+'/Y.txt')
+        return Y
 
     def plot_history(self, history):
         hist = pd.DataFrame(history.history)
