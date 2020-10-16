@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2019 The Regents of the University of California
 #
-# This file is part of pelicun.
+# This file is part of surf.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # You should have received a copy of the BSD 3-Clause License along with
-# pelicun. If not, see <http://www.opensource.org/licenses/>.
+# surf. If not, see <http://www.opensource.org/licenses/>.
 #
 # Contributors:
 # "Charles" Chaofeng Wang
