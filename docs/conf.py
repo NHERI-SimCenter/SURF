@@ -115,7 +115,7 @@ html_theme_options = {
 	'style_nav_header_background': '#F2F2F2', #64B5F6 #607D8B
 }
 
-html_logo = 'images/SimCenter_SURF_logo.png'
+html_logo = 'SimCenter_SURF_logo_solo.png'
 
 numfig = True
 numfig_secnum_depth = 2
